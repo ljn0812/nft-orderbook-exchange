@@ -12,15 +12,15 @@ import {Price} from "./libraries/RedBlackTreeLibrary.sol";
 import {LibOrder, OrderKey} from "./libraries/LibOrder.sol";
 import {LibPayInfo} from "./libraries/LibPayInfo.sol";
 
-import {IEasySwapOrderBook} from "./interface/IEasySwapOrderBook.sol";
-import {IEasySwapVault} from "./interface/IEasySwapVault.sol";
+import {IOrderBookExchange} from "./interface/IOrderBookExchange.sol";
+import {IOrderBookVault} from "./interface/IOrderBookVault.sol";
 
 import {OrderStorage} from "./OrderStorage.sol";
 import {OrderValidator} from "./OrderValidator.sol";
 import {ProtocolManager} from "./ProtocolManager.sol";
 
-contract EasySwapOrderBook is
-    IEasySwapOrderBook,
+contract OrderBookExchange is
+    IOrderBookExchange,
     Initializable,
     ContextUpgradeable,
     OwnableUpgradeable,
@@ -79,7 +79,7 @@ contract EasySwapOrderBook is
         string memory EIP712Name,
         string memory EIP712Version
     ) public initializer {
-        __EasySwapOrderBook_init(
+        __OrderBookExchange_init(
             newProtocolShare,
             newVault,
             EIP712Name,
@@ -87,13 +87,13 @@ contract EasySwapOrderBook is
         );
     }
 
-    function __EasySwapOrderBook_init(
+    function __OrderBookExchange_init(
         uint128 newProtocolShare,
         address newVault,
         string memory EIP712Name,
         string memory EIP712Version
     ) internal onlyInitializing {
-        __EasySwapOrderBook_init_unchained(
+        __OrderBookExchange_init_unchained(
             newProtocolShare,
             newVault,
             EIP712Name,
@@ -101,7 +101,7 @@ contract EasySwapOrderBook is
         );
     }
 
-    function __EasySwapOrderBook_init_unchained(
+    function __OrderBookExchange_init_unchained(
         uint128 newProtocolShare,
         address newVault,
         string memory EIP712Name,
@@ -121,7 +121,7 @@ contract EasySwapOrderBook is
 
     /**
      * @notice Create multiple orders and transfer related assets.
-     * @dev If Side=List, you need to authorize the EasySwapVault contract first (creating a List order will transfer the NFT to the order pool).
+     * @dev If Side=List, you need to authorize the OrderBookVault contract first (creating a List order will transfer the NFT to the order pool).
      * @dev If Side=Bid, you need to pass {value}: the price of the bid (similarly, creating a Bid order will transfer ETH to the order pool).
      * @dev order.maker needs to be msg.sender.
      * @dev order.price cannot be 0.
@@ -323,7 +323,7 @@ contract EasySwapOrderBook is
                     // limit list order amount to 1
                     return LibOrder.ORDERKEY_SENTINEL;
                 }
-                IEasySwapVault(_vault).depositNFT(
+                IOrderBookVault(_vault).depositNFT(
                     newOrderKey,
                     order.maker,
                     order.nft.collection,
@@ -333,7 +333,7 @@ contract EasySwapOrderBook is
                 if (order.nft.amount == 0) {
                     return LibOrder.ORDERKEY_SENTINEL;
                 }
-                IEasySwapVault(_vault).depositETH{value: uint256(ETHAmount)}(
+                IOrderBookVault(_vault).depositETH{value: uint256(ETHAmount)}(
                     newOrderKey,
                     ETHAmount
                 );
@@ -369,7 +369,7 @@ contract EasySwapOrderBook is
             _removeOrder(order);
             // withdraw asset from vault
             if (order.side == LibOrder.Side.List) {
-                IEasySwapVault(_vault).withdrawNFT(
+                IOrderBookVault(_vault).withdrawNFT(
                     orderHash,
                     order.maker,
                     order.nft.collection,
@@ -378,7 +378,7 @@ contract EasySwapOrderBook is
             } else if (order.side == LibOrder.Side.Bid) {
                 uint256 availNFTAmount = order.nft.amount -
                     filledAmount[orderKey];
-                IEasySwapVault(_vault).withdrawETH(
+                IOrderBookVault(_vault).withdrawETH(
                     orderHash,
                     Price.unwrap(order.price) * availNFTAmount, // the withdraw amount of eth
                     order.maker
@@ -432,7 +432,7 @@ contract EasySwapOrderBook is
 
         // make new order
         if (oldOrder.side == LibOrder.Side.List) {
-            IEasySwapVault(_vault).editNFT(oldOrderKey, newOrderKey);
+            IOrderBookVault(_vault).editNFT(oldOrderKey, newOrderKey);
         } else if (oldOrder.side == LibOrder.Side.Bid) {
             uint256 oldRemainingPrice = Price.unwrap(oldOrder.price) *
                 (oldOrder.nft.amount - oldFilledAmount);
@@ -440,7 +440,7 @@ contract EasySwapOrderBook is
                 newOrder.nft.amount;
             if (newRemainingPrice > oldRemainingPrice) {
                 deltaBidPrice = newRemainingPrice - oldRemainingPrice;
-                IEasySwapVault(_vault).editETH{value: uint256(deltaBidPrice)}(
+                IOrderBookVault(_vault).editETH{value: uint256(deltaBidPrice)}(
                     oldOrderKey,
                     newOrderKey,
                     oldRemainingPrice,
@@ -448,7 +448,7 @@ contract EasySwapOrderBook is
                     oldOrder.maker
                 );
             } else {
-                IEasySwapVault(_vault).editETH(
+                IOrderBookVault(_vault).editETH(
                     oldOrderKey,
                     newOrderKey,
                     oldRemainingPrice,
@@ -503,7 +503,7 @@ contract EasySwapOrderBook is
             );
 
             // transfer nft&eth
-            IEasySwapVault(_vault).withdrawETH(
+            IOrderBookVault(_vault).withdrawETH(
                 buyOrderKey,
                 fillPrice,
                 address(this)
@@ -513,14 +513,14 @@ contract EasySwapOrderBook is
             sellOrder.maker.safeTransferETH(fillPrice - protocolFee);
 
             if (isSellExist) {
-                IEasySwapVault(_vault).withdrawNFT(
+                IOrderBookVault(_vault).withdrawNFT(
                     sellOrderKey,
                     buyOrder.maker,
                     sellOrder.nft.collection,
                     sellOrder.nft.tokenId
                 );
             } else {
-                IEasySwapVault(_vault).transferERC721(
+                IOrderBookVault(_vault).transferERC721(
                     sellOrder.maker,
                     buyOrder.maker,
                     sellOrder.nft
@@ -539,7 +539,7 @@ contract EasySwapOrderBook is
                 require(msgValue >= fillPrice, "HD: value < fill price");
             } else {
                 require(buyPrice >= fillPrice, "HD: buy price < fill price");
-                IEasySwapVault(_vault).withdrawETH(
+                IOrderBookVault(_vault).withdrawETH(
                     buyOrderKey,
                     buyPrice,
                     address(this)
@@ -565,7 +565,7 @@ contract EasySwapOrderBook is
                 buyOrder.maker.safeTransferETH(buyPrice - fillPrice);
             }
 
-            IEasySwapVault(_vault).withdrawNFT(
+            IOrderBookVault(_vault).withdrawNFT(
                 sellOrderKey,
                 buyOrder.maker,
                 sellOrder.nft.collection,

@@ -12,13 +12,13 @@ const Uint128Max = toBn("340282366920938463463.374607431768211455");
 const Uint256Max = toBn("115792089237316195423570985008687907853269984665640564039457.584007913129639935");
 
 
-describe("EasySwap Test", function () {
+describe("OrderBookExchange Test", function () {
     beforeEach(async function () {
         [owner, addr1, addr2, ...addrs] = await ethers.getSigners();
         // console.log("owner: ", owner.address)
 
-        esVault = await ethers.getContractFactory("EasySwapVault")
-        esDex = await ethers.getContractFactory("EasySwapOrderBook")
+        esVault = await ethers.getContractFactory("OrderBookVault")
+        esDex = await ethers.getContractFactory("OrderBookExchange")
         testERC721 = await ethers.getContractFactory("TestERC721")
         testLibOrder = await ethers.getContractFactory("LibOrderTest")
 
@@ -30,7 +30,7 @@ describe("EasySwap Test", function () {
 
         newProtocolShare = 200;
         newESVault = esVault.address
-        EIP712Name = "EasySwapOrderBook"
+        EIP712Name = "OrderBookExchange"
         EIP712Version = "1"
         esDex = await upgrades.deployProxy(esDex, [newProtocolShare, newESVault, EIP712Name, EIP712Version], { initializer: 'initialize' });
         // await esDex.waitForDeployment();

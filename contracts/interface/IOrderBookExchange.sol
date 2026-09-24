@@ -3,10 +3,10 @@ pragma solidity ^0.8.19;
 
 import {OrderKey, Price, LibOrder} from "../libraries/LibOrder.sol";
 
-interface IEasySwapOrderBook {
+interface IOrderBookExchange {
     /**
      * @notice Create multiple orders and transfer related assets.
-     * @dev If Side=List, you need to authorize the EasySwapOrderBook contract first (creating a List order will transfer the NFT to the order pool).
+     * @dev If Side=List, you need to authorize the OrderBookExchange contract first (creating a List order will transfer the NFT to the order pool).
      * @dev If Side=Bid, you need to pass {value}: the price of the bid (similarly, creating a Bid order will transfer ETH to the order pool).
      * @dev order.maker needs to be msg.sender.
      * @dev order.price cannot be 0.

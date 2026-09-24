@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 import {LibOrder, OrderKey} from "../libraries/LibOrder.sol";
 
-interface IEasySwapVault {
+interface IOrderBookVault {
     // function
 
     /**

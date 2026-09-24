@@ -1,4 +1,4 @@
-# EasySwap — NFT Order-Book Exchange
+# nft-orderbook-exchange
 
 An on-chain order-book exchange for NFTs (ERC-721 / ERC-721A), built with Solidity and Hardhat. Price-time priority matching, upgradeable architecture, and asset custody isolated from trade logic.
 
@@ -9,12 +9,12 @@ Most NFT marketplaces either rely on off-chain order relaying (Seaport-style) or
 ## Architecture
 
 ```
-EasySwapOrderBook   →  order matching logic (create / cancel / edit limit & market orders)
+OrderBookExchange   →  order matching logic (create / cancel / edit limit & market orders)
 ├── OrderStorage     →  order state management
 ├── OrderValidator    →  order validation rules
 └── ProtocolManager   →  protocol fee handling
 
-EasySwapVault        →  isolated custody for NFTs & ETH, decoupled from matching logic
+OrderBookVault      →  isolated custody for NFTs & ETH, decoupled from matching logic
 ```
 
 Splitting the vault from the order book means a bug in matching logic can't directly drain custodied assets — the vault only moves funds on calls from the authorized order book contract.
@@ -33,13 +33,13 @@ Solidity 0.8.20, Hardhat, OpenZeppelin Contracts (Upgradeable), ethers.js, solid
 
 ## Status
 
-Independent project — deployed and verified on Sepolia testnet. Contract addresses below.
+Independent project. Sepolia deployment scripts are included (`scripts/deploy.js`); contract addresses will be listed here once deployed and verified on Etherscan.
 
 <!-- Fill in after deployment:
 | Contract | Address | Etherscan |
 |---|---|---|
-| EasySwapOrderBook | 0x... | [verify](https://sepolia.etherscan.io/address/0x...#code) |
-| EasySwapVault | 0x... | [verify](https://sepolia.etherscan.io/address/0x...#code) |
+| OrderBookExchange | 0x... | [verify](https://sepolia.etherscan.io/address/0x...#code) |
+| OrderBookVault | 0x... | [verify](https://sepolia.etherscan.io/address/0x...#code) |
 -->
 
 ## Running it locally
@@ -64,5 +64,5 @@ npx hardhat run --network sepolia scripts/deploy_721.js   # test ERC-721 for loc
 
 ```shell
 npx hardhat size-contracts
-slither-read-storage ./contracts/EasySwapOrderBook.sol --contract-name EasySwapOrderBook --solc-remaps @=node_modules/@ --json storage_layout.json
+slither-read-storage ./contracts/OrderBookExchange.sol --contract-name OrderBookExchange --solc-remaps @=node_modules/@ --json storage_layout.json
 ```

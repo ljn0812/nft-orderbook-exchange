@@ -13,7 +13,7 @@ async function main() {
   const [deployer] = await ethers.getSigners()
   console.log("deployer: ", deployer.address)
 
-  // let esVault = await ethers.getContractFactory("EasySwapVault")
+  // let esVault = await ethers.getContractFactory("OrderBookVault")
   // esVault = await upgrades.deployProxy(esVault, { initializer: 'initialize' });
   // await esVault.deployed()
   // console.log("esVault contract deployed to:", esVault.address)
@@ -22,9 +22,9 @@ async function main() {
 
   // newProtocolShare = 200;
   // newESVault = "0xbec0a53855768c5F35954299Ba6aF537915d1979";
-  // EIP712Name = "EasySwapOrderBook";
+  // EIP712Name = "OrderBookExchange";
   // EIP712Version = "1";
-  // let esDex = await ethers.getContractFactory("EasySwapOrderBook")
+  // let esDex = await ethers.getContractFactory("OrderBookExchange")
   // esDex = await upgrades.deployProxy(esDex, [newProtocolShare, newESVault, EIP712Name, EIP712Version], { initializer: 'initialize' });
   // await esDex.deployed()
   // console.log("esDex contract deployed to:", esDex.address)
@@ -34,7 +34,7 @@ async function main() {
   esDexAddress = "0x46574C9a9305dE51aFc12C96e926679d6A157C63"
   esVaultAddress = "0xbec0a53855768c5F35954299Ba6aF537915d1979"
   const esVault = await (
-    await ethers.getContractFactory("EasySwapVault")
+    await ethers.getContractFactory("OrderBookVault")
   ).attach(esVaultAddress)
   tx = await esVault.setOrderBook(esDexAddress)
   await tx.wait()

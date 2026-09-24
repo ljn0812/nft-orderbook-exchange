@@ -11,10 +11,10 @@ const { toBn } = require("evm-bn")
       esDex AdminAddress: 
  */
 
-const esDex_name = "EasySwapOrderBook";
+const esDex_name = "OrderBookExchange";
 const esDex_address = "0x46574C9a9305dE51aFc12C96e926679d6A157C63"
 
-const esVault_name = "EasySwapVault";
+const esVault_name = "OrderBookVault";
 const esVault_address = "0xbec0a53855768c5F35954299Ba6aF537915d1979"
 
 const erc721_name = "TestERC721"

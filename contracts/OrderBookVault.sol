@@ -6,9 +6,9 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {LibTransferSafeUpgradeable, IERC721} from "./libraries/LibTransferSafeUpgradeable.sol";
 import {LibOrder, OrderKey} from "./libraries/LibOrder.sol";
 
-import {IEasySwapVault} from "./interface/IEasySwapVault.sol";
+import {IOrderBookVault} from "./interface/IOrderBookVault.sol";
 
-contract EasySwapVault is IEasySwapVault, OwnableUpgradeable {
+contract OrderBookVault is IOrderBookVault, OwnableUpgradeable {
     using LibTransferSafeUpgradeable for address;
     using LibTransferSafeUpgradeable for IERC721;
 
@@ -16,8 +16,8 @@ contract EasySwapVault is IEasySwapVault, OwnableUpgradeable {
     mapping(OrderKey => uint256) public ETHBalance;
     mapping(OrderKey => uint256) public NFTBalance;
 
-    modifier onlyEasySwapOrderBook() {
-        require(msg.sender == orderBook, "HV: only EasySwap OrderBook");
+    modifier onlyOrderBookExchange() {
+        require(msg.sender == orderBook, "HV: only OrderBookExchange");
         _;
     }
 
@@ -40,7 +40,7 @@ contract EasySwapVault is IEasySwapVault, OwnableUpgradeable {
     function depositETH(
         OrderKey orderKey,
         uint256 ETHAmount
-    ) external payable onlyEasySwapOrderBook {
+    ) external payable onlyOrderBookExchange {
         require(msg.value >= ETHAmount, "HV: not match ETHAmount");
         ETHBalance[orderKey] += msg.value;
     }
@@ -49,7 +49,7 @@ contract EasySwapVault is IEasySwapVault, OwnableUpgradeable {
         OrderKey orderKey,
         uint256 ETHAmount,
         address to
-    ) external onlyEasySwapOrderBook {
+    ) external onlyOrderBookExchange {
         ETHBalance[orderKey] -= ETHAmount;
         to.safeTransferETH(ETHAmount);
     }
@@ -59,7 +59,7 @@ contract EasySwapVault is IEasySwapVault, OwnableUpgradeable {
         address from,
         address collection,
         uint256 tokenId
-    ) external onlyEasySwapOrderBook {
+    ) external onlyOrderBookExchange {
         IERC721(collection).safeTransferNFT(from, address(this), tokenId);
 
         NFTBalance[orderKey] = tokenId;
@@ -70,7 +70,7 @@ contract EasySwapVault is IEasySwapVault, OwnableUpgradeable {
         address to,
         address collection,
         uint256 tokenId
-    ) external onlyEasySwapOrderBook {
+    ) external onlyOrderBookExchange {
         require(NFTBalance[orderKey] == tokenId, "HV: not match tokenId");
         delete NFTBalance[orderKey];
 
@@ -83,7 +83,7 @@ contract EasySwapVault is IEasySwapVault, OwnableUpgradeable {
         uint256 oldETHAmount,
         uint256 newETHAmount,
         address to
-    ) external payable onlyEasySwapOrderBook {
+    ) external payable onlyOrderBookExchange {
         ETHBalance[oldOrderKey] = 0;
         if (oldETHAmount > newETHAmount) {
             ETHBalance[newOrderKey] = newETHAmount;
@@ -102,7 +102,7 @@ contract EasySwapVault is IEasySwapVault, OwnableUpgradeable {
     function editNFT(
         OrderKey oldOrderKey,
         OrderKey newOrderKey
-    ) external onlyEasySwapOrderBook {
+    ) external onlyOrderBookExchange {
         NFTBalance[newOrderKey] = NFTBalance[oldOrderKey];
         delete NFTBalance[oldOrderKey];
     }
@@ -111,7 +111,7 @@ contract EasySwapVault is IEasySwapVault, OwnableUpgradeable {
         address from,
         address to,
         LibOrder.Asset calldata assets
-    ) external onlyEasySwapOrderBook {
+    ) external onlyOrderBookExchange {
         IERC721(assets.collection).safeTransferNFT(from, to, assets.tokenId);
     }
 
